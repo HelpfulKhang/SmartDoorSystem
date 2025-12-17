@@ -1,8 +1,6 @@
-.pio/build/esp32doit-devkit-v1/libab1/ESP32Servo/ESP32Servo.cpp.o: \
- .pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src/ESP32Servo.cpp \
- .pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src/ESP32Servo.h \
- .pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src/ESP32PWM.h \
- C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-ledc.h \
+.pio/build/esp32doit-devkit-v1/lib342/PubSubClient/PubSubClient.cpp.o: \
+ .pio/libdeps/esp32doit-devkit-v1/PubSubClient/src/PubSubClient.cpp \
+ .pio/libdeps/esp32doit-devkit-v1/PubSubClient/src/PubSubClient.h \
  C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
  C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp_arduino_version.h \
  C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/freertos/FreeRTOS.h \
@@ -136,4 +134,5 @@
  C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/spi_flash/include/esp_spi_flash_counters.h \
  C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
- C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h
+ C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
+ C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/Client.h

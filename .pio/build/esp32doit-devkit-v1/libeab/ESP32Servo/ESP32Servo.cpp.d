@@ -1,5 +1,6 @@
-.pio/build/esp32doit-devkit-v1/libab1/ESP32Servo/ESP32PWM.cpp.o: \
- .pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src/ESP32PWM.cpp \
+.pio/build/esp32doit-devkit-v1/libeab/ESP32Servo/ESP32Servo.cpp.o: \
+ .pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src/ESP32Servo.cpp \
+ .pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src/ESP32Servo.h \
  .pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src/ESP32PWM.h \
  C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-ledc.h \
  C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \

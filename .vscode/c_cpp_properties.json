@@ -8,11 +8,11 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "C:/Users/Administrator/Documents/GitHub/SmartDoorSystem/include",
-                "C:/Users/Administrator/Documents/GitHub/SmartDoorSystem/src",
+                "c:/Users/Administrator/Documents/GitHub/SmartDoorSystem/include",
+                "c:/Users/Administrator/Documents/GitHub/SmartDoorSystem/src",
                 "C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
-                "C:/Users/Administrator/Documents/GitHub/SmartDoorSystem/.pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src",
-                "C:/Users/Administrator/Documents/GitHub/SmartDoorSystem/.pio/libdeps/esp32doit-devkit-v1/PubSubClient/src",
+                "c:/Users/Administrator/Documents/GitHub/SmartDoorSystem/.pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src",
+                "c:/Users/Administrator/Documents/GitHub/SmartDoorSystem/.pio/libdeps/esp32doit-devkit-v1/PubSubClient/src",
                 "C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/newlib/platform_include",
                 "C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include",
                 "C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/esp_additions/freertos",
@@ -246,11 +246,11 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "C:/Users/Administrator/Documents/GitHub/SmartDoorSystem/include",
-                    "C:/Users/Administrator/Documents/GitHub/SmartDoorSystem/src",
+                    "c:/Users/Administrator/Documents/GitHub/SmartDoorSystem/include",
+                    "c:/Users/Administrator/Documents/GitHub/SmartDoorSystem/src",
                     "C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
-                    "C:/Users/Administrator/Documents/GitHub/SmartDoorSystem/.pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src",
-                    "C:/Users/Administrator/Documents/GitHub/SmartDoorSystem/.pio/libdeps/esp32doit-devkit-v1/PubSubClient/src",
+                    "c:/Users/Administrator/Documents/GitHub/SmartDoorSystem/.pio/libdeps/esp32doit-devkit-v1/ESP32Servo/src",
+                    "c:/Users/Administrator/Documents/GitHub/SmartDoorSystem/.pio/libdeps/esp32doit-devkit-v1/PubSubClient/src",
                     "C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/newlib/platform_include",
                     "C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include",
                     "C:/Users/Administrator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/esp_additions/freertos",
