@@ -15,23 +15,22 @@ const char* topic_bell     = "23127203-23127460/door/doorbell";
 const char* topic_command  = "23127203-23127460/door/command";
 
 // --- ĐỊNH NGHĨA CHÂN ---
-#define PIN_DOOR_SENSOR 4   // Input: Cảm biến (Slide Switch)
-#define PIN_BELL_BUTTON 5   // Input: Nút chuông (Button)
+#define PIN_DOOR_SENSOR 4   // Input: Cảm biến
+#define PIN_BELL_BUTTON 5   // Input: Nút chuông
 #define PIN_SERVO       13  // Output: Servo
 #define PIN_BUZZER      14  // Output: Còi
-
-// Chân cho LED RGB
-#define PIN_RGB_RED     18  // Chân R
-#define PIN_RGB_GREEN   19  // Chân G
-#define PIN_RGB_BLUE    21  // Chân B
+#define PIN_RGB_RED     18  
+#define PIN_RGB_GREEN   19  
+#define PIN_RGB_BLUE    21  
 
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 Servo myServo;
 
 // Biến trạng thái
-int lastBellState = HIGH;      // Trạng thái nút chuông cũ
-int lastDoorSensorState = -1;  // Trạng thái cảm biến cũ (-1 để cập nhật ngay lần đầu)
+int lastBellState = HIGH;      
+int lastDoorSensorState = -1;  
+unsigned long lastBellTime = 0; // [MỚI] Thời điểm bấm chuông cuối cùng
 
 void wifiConnect() {
   Serial.print("Connecting to WiFi");
@@ -52,7 +51,6 @@ void beep(int times) {
   }
 }
 
-// --- HÀM ĐIỀU KHIỂN MÀU RGB ---
 void setColor(bool red, bool green, bool blue) {
   digitalWrite(PIN_RGB_RED, red);
   digitalWrite(PIN_RGB_GREEN, green);
@@ -63,18 +61,15 @@ void updateDoorStatus(bool isOpen) {
   mqttClient.publish(topic_status, isOpen ? "OPEN" : "CLOSED");
 }
 
-// --- HÀM ĐIỀU KHIỂN SERVO (CHỈ QUAY MOTOR) ---
 void openDoor() {
     Serial.println("CMD: OPEN SERVO");
-    myServo.write(90); // Mở chốt
+    myServo.write(90); 
     beep(1);
-    // Lưu ý: Không đổi màu đèn hay gửi MQTT ở đây nữa
-    // Việc đó để Cảm biến ở trong Loop lo.
 }
 
 void closeDoor() {
     Serial.println("CMD: CLOSE SERVO");
-    myServo.write(0); // Khóa chốt
+    myServo.write(0); 
     beep(1);
 }
 
@@ -107,21 +102,16 @@ void callback(char* topic, byte* message, unsigned int length) {
 void setup() {
   Serial.begin(115200);
 
-  // Cấu hình chân
-  pinMode(PIN_DOOR_SENSOR, INPUT_PULLUP); // Cảm biến kéo cao
-  pinMode(PIN_BELL_BUTTON, INPUT_PULLUP); // Nút chuông kéo cao (cho ổn định)
+  pinMode(PIN_DOOR_SENSOR, INPUT_PULLUP);
+  pinMode(PIN_BELL_BUTTON, INPUT_PULLUP);
   pinMode(PIN_BUZZER, OUTPUT);
-  
-  // Cấu hình 3 chân màu của RGB là OUTPUT
   pinMode(PIN_RGB_RED, OUTPUT);
   pinMode(PIN_RGB_GREEN, OUTPUT);
   pinMode(PIN_RGB_BLUE, OUTPUT);
 
-  // Khởi tạo Servo
   myServo.attach(PIN_SERVO);
   myServo.write(0); 
   
-  // Mặc định: Đóng cửa -> Sáng màu XANH LÁ
   setColor(0, 1, 0); 
 
   wifiConnect();
@@ -133,42 +123,55 @@ void loop() {
   if (!mqttClient.connected()) mqttConnect();
   mqttClient.loop();
 
-  // --- 1. XỬ LÝ CẢM BIẾN CỬA (Logic Quan Trọng Nhất) ---
-  int currentDoorState = digitalRead(PIN_DOOR_SENSOR);
-  
-  // Nếu trạng thái cảm biến thay đổi so với lần trước
-  if (currentDoorState != lastDoorSensorState) {
-      if (currentDoorState == HIGH) {
-          // HIGH = Hở mạch = Cửa Mở -> Đèn Đỏ + Gửi "OPEN"
-          Serial.println("Sensor: Cửa MỞ");
-          updateDoorStatus(true);
-          setColor(1, 0, 0); 
-      } else {
-          // LOW = Chạm nhau = Cửa Đóng -> Đèn Xanh + Gửi "CLOSED"
-          Serial.println("Sensor: Cửa ĐÓNG");
-          updateDoorStatus(false);
-          setColor(0, 1, 0); 
-      }
-      lastDoorSensorState = currentDoorState; // Lưu lại
-      delay(100); // Chống dội (Debounce)
-  }
+  unsigned long now = millis(); // Lấy thời gian hiện tại
 
-  // --- 2. XỬ LÝ NÚT CHUÔNG ---
+  // --- 1. XỬ LÝ NÚT CHUÔNG ---
   int currentBellState = digitalRead(PIN_BELL_BUTTON);
   
-  // Phát hiện nhấn nút (Chuyển từ Cao xuống Thấp do INPUT_PULLUP)
   if (lastBellState == HIGH && currentBellState == LOW) {
     Serial.println("Ring Ring!");
     mqttClient.publish(topic_bell, "RING");
     
-    // Hiệu ứng nháy màu xanh dương khi bấm chuông
+    // Hiệu ứng bấm chuông
     setColor(0, 0, 1); // Blue ON
     beep(1);
-    delay(200);
+    delay(200); 
     
-    // Trả lại màu trạng thái cũ dựa trên Cảm biến
-    if(digitalRead(PIN_DOOR_SENSOR) == HIGH) setColor(1, 0, 0); // Đỏ nếu đang mở
-    else setColor(0, 1, 0); // Xanh nếu đang đóng
+    // [FIX 1]: Trả lại màu dựa trên BIẾN NHỚ (lastDoorSensorState)
+    // Thay vì đọc lại chân Digital (có thể đang bị nhiễu)
+    if(lastDoorSensorState == HIGH) setColor(1, 0, 0); // Đỏ (đang mở)
+    else setColor(0, 1, 0); // Xanh (đang đóng)
+
+    // [FIX 2]: Ghi lại thời điểm bấm chuông để chặn cảm biến cửa 1 chút
+    lastBellTime = millis(); 
   }
   lastBellState = currentBellState;
+
+
+  // --- 2. XỬ LÝ CẢM BIẾN CỬA ---
+  // [FIX 3]: Chỉ xử lý cảm biến cửa nếu ĐÃ QUA 500ms kể từ lần bấm chuông cuối cùng
+  // Điều này giúp tránh việc rung tay khi bấm chuông làm cảm biến cửa bị nhảy sai
+  if (now - lastBellTime > 500) {
+      
+      int currentDoorState = digitalRead(PIN_DOOR_SENSOR);
+      
+      if (currentDoorState != lastDoorSensorState) {
+          // Delay nhỏ để chống dội tín hiệu (Debounce) trước khi quyết định
+          delay(50); 
+          // Đọc lại lần nữa cho chắc ăn
+          if (digitalRead(PIN_DOOR_SENSOR) == currentDoorState) {
+              
+              if (currentDoorState == HIGH) {
+                  Serial.println("Sensor: Cửa MỞ");
+                  updateDoorStatus(true);
+                  setColor(1, 0, 0); 
+              } else {
+                  Serial.println("Sensor: Cửa ĐÓNG");
+                  updateDoorStatus(false);
+                  setColor(0, 1, 0); 
+              }
+              lastDoorSensorState = currentDoorState; 
+          }
+      }
+  }
 }
