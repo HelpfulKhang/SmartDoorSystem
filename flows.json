@@ -621,7 +621,7 @@
         "type": "function",
         "z": "flow_v23_final",
         "name": "TẠO PROMPT",
-        "func": "// 1. Lấy dữ liệu thực tế từ biến toàn cục (được cập nhật ở node \"Xử lý Cửa\")\nvar status = flow.get('doorCurrentState') || \"Chưa rõ (Chưa có dữ liệu từ cảm biến)\";\nvar countOpen = flow.get('cOpen') || 0;\nvar countBell = flow.get('cBell') || 0;\n\n// 2. Câu hỏi của người dùng\nvar userQuestion = msg.payload;\n\n// 3. Tạo ngữ cảnh cho AI\nvar contest = `Bạn là trợ lý quản lý nhà thông minh (Smart Home).\nDữ liệu hiện tại của ngôi nhà theo thời gian thực:\n- Trạng thái cửa: ${status}\n- Số lần mở cửa hôm nay: ${countOpen} lần\n- Số lần bấm chuông: ${countBell} lần.\n\nHãy trả lời câu hỏi của người dùng dựa trên dữ liệu trên.\nPhong cách trả lời: Ngắn gọn, thân thiện, dùng tiếng Việt, có thể dùng icon vui nhộn.`;\n\n// 4. Đóng gói JSON gửi Google\nmsg.payload = {\n    \"contents\": [{\n        \"parts\": [{\n            \"text\": contest + \"\\n\\nNgười dùng hỏi: \" + userQuestion\n        }]\n    }]\n};\n\n// 5. Header\nmsg.headers = {\n    \"Content-Type\": \"application/json\"\n};\n\nreturn msg;",
+        "func": "// --- 1. CẤU HÌNH BẢO MẬT ---\n// Dán API Key của bạn vào đây (Chỉ mình bạn thấy khi mở code này)\nvar API_KEY = \"AIzaSyD_UM8c_gi1ojuGSTcWw1S76Olp6W582lg\"; // <--- THAY KEY CỦA BẠN VÀO ĐÂY\n\n// Chọn Model (2.0 Flash hoặc 1.5 Pro)\nvar MODEL = \"gemini-2.5-flash\";\n\n// --- 2. LẤY DỮ LIỆU ---\nvar status = flow.get('doorCurrentState') || \"Chưa rõ\";\nvar countOpen = flow.get('cOpen') || 0;\nvar countBell = flow.get('cBell') || 0;\nvar userQuestion = msg.payload; // Lấy câu hỏi từ nút Gửi\n\n// --- 3. TẠO NGỮ CẢNH (Context) ---\nvar contest = `Bạn là trợ lý ảo Smart Door.\nDữ liệu nhà hiện tại:\n- Cửa: ${status}\n- Số lần mở: ${countOpen}\n- Số lần bấm chuông: ${countBell}\nHãy trả lời ngắn gọn, thân thiện bằng tiếng Việt.`;\n\n// --- 4. ĐÓNG GÓI JSON ---\nmsg.payload = {\n    \"contents\": [{\n        \"parts\": [{\n            \"text\": contest + \"\\n\\nNgười dùng hỏi: \" + userQuestion\n        }]\n    }]\n};\n\n// --- 5. TẠO ĐƯỜNG LINK ĐỘNG (QUAN TRỌNG) ---\n// Node-RED sẽ dùng msg.url này để gửi đi thay vì dùng cấu hình tĩnh\nmsg.url = \"https://generativelanguage.googleapis.com/v1beta/models/\" + MODEL + \":generateContent?key=\" + API_KEY;\n\n// Header chuẩn\nmsg.headers = {\n    \"Content-Type\": \"application/json\"\n};\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -644,7 +644,7 @@
         "method": "POST",
         "ret": "obj",
         "paytoqs": "ignore",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyD_UM8c_gi1ojuGSTcWw1S76Olp6W582lg",
+        "url": "",
         "tls": "",
         "persist": false,
         "proxy": "",
@@ -896,7 +896,7 @@
         "hidden": false
     },
     {
-        "id": "d63ba7bba92034bb",
+        "id": "268986f1b0596db6",
         "type": "global-config",
         "env": [],
         "modules": {
