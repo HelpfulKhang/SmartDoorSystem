@@ -35,7 +35,6 @@
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
     [ "esp:GND.1", "bb1:tn.1", "blue", [ "h-28.65", "v-105.6" ] ],
     [ "esp:5V", "bb1:tp.1", "red", [ "h-38.25", "v-153.6" ] ],
-    [ "bb1:tp.9", "bb1:12t.a", "red", [ "h0" ] ],
     [ "bb1:tn.4", "bb1:1t.e", "blue", [ "v0" ] ],
     [ "esp:14", "bb1:2t.e", "green", [ "h-67.05", "v172.8" ] ],
     [ "esp:5", "bb1:10t.a", "green", [ "h0" ] ],
@@ -48,10 +47,6 @@
     [ "servo1:GND", "bb1:tn.17", "blue", [ "h0" ] ],
     [ "servo1:V+", "bb1:tp.18", "red", [ "h0" ] ],
     [ "esp:13", "servo1:PWM", "green", [ "h0" ] ],
-    [ "btn1:1.l", "bb1:12t.e", "", [ "$bb" ] ],
-    [ "btn1:2.l", "bb1:10t.e", "", [ "$bb" ] ],
-    [ "btn1:1.r", "bb1:12b.f", "", [ "$bb" ] ],
-    [ "btn1:2.r", "bb1:10b.f", "", [ "$bb" ] ],
     [ "bz1:1", "bb1:1t.d", "", [ "$bb" ] ],
     [ "bz1:2", "bb1:2t.d", "", [ "$bb" ] ],
     [ "rgb1:R", "bb1:13t.c", "", [ "$bb" ] ],
@@ -61,7 +56,9 @@
     [ "sw1:1", "bb1:18t.d", "", [ "$bb" ] ],
     [ "sw1:2", "bb1:19t.d", "", [ "$bb" ] ],
     [ "sw1:3", "bb1:20t.d", "", [ "$bb" ] ],
-    [ "bb1:tn.7", "bb1:10t.b", "blue", [ "v0" ] ]
+    [ "btn1:2.l", "bb1:10t.e", "", [ "$bb" ] ],
+    [ "btn1:1.l", "bb1:12t.e", "", [ "$bb" ] ],
+    [ "bb1:tn.8", "bb1:12t.a", "blue", [ "v0" ] ]
   ],
   "dependencies": {}
 }
