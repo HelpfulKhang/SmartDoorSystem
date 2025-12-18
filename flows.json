@@ -1,0 +1,906 @@
+[
+    {
+        "id": "flow_v23_final",
+        "type": "tab",
+        "label": "Smart Door V23 (Final)",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "btn_unlock",
+        "type": "ui_button",
+        "z": "flow_v23_final",
+        "name": "",
+        "group": "grp_lock_ctrl",
+        "order": 1,
+        "width": "4",
+        "height": 2,
+        "passthru": false,
+        "label": "MỞ KHÓA (UNLOCK)",
+        "tooltip": "Gửi lệnh quay Servo 90 độ",
+        "color": "black",
+        "bgcolor": "#66ff66",
+        "className": "",
+        "icon": "fa-unlock",
+        "payload": "UNLOCK",
+        "payloadType": "str",
+        "topic": "23127203-23127460/door/command",
+        "topicType": "str",
+        "x": 160,
+        "y": 180,
+        "wires": [
+            [
+                "mqtt_out_cmd"
+            ]
+        ]
+    },
+    {
+        "id": "btn_lock",
+        "type": "ui_button",
+        "z": "flow_v23_final",
+        "name": "",
+        "group": "grp_lock_ctrl",
+        "order": 3,
+        "width": "4",
+        "height": 2,
+        "passthru": false,
+        "label": "KHÓA (LOCK)",
+        "tooltip": "Gửi lệnh quay Servo 0 độ",
+        "color": "white",
+        "bgcolor": "#ff3333",
+        "className": "",
+        "icon": "fa-lock",
+        "payload": "LOCK",
+        "payloadType": "str",
+        "topic": "23127203-23127460/door/command",
+        "topicType": "str",
+        "x": 140,
+        "y": 240,
+        "wires": [
+            [
+                "mqtt_out_cmd"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_cmd",
+        "type": "mqtt out",
+        "z": "flow_v23_final",
+        "name": "CMD -> ESP32",
+        "topic": "23127203-23127460/door/command",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_hive_v23",
+        "x": 400,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "mqtt_in_status",
+        "type": "mqtt in",
+        "z": "flow_v23_final",
+        "name": "Nhận OPEN/CLOSED",
+        "topic": "23127203-23127460/door/status",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "mqtt_hive_v23",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 80,
+        "wires": [
+            [
+                "func_process_status",
+                "f_prep_cloud_door"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_in_bell",
+        "type": "mqtt in",
+        "z": "flow_v23_final",
+        "name": "Nhận CHUÔNG",
+        "topic": "23127203-23127460/door/doorbell",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "mqtt_hive_v23",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 100,
+        "y": 300,
+        "wires": [
+            [
+                "func_process_bell",
+                "f_prep_cloud_bell"
+            ]
+        ]
+    },
+    {
+        "id": "ui_text_status",
+        "type": "ui_text",
+        "z": "flow_v23_final",
+        "group": "grp_lock_ctrl",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "CỬA ĐANG:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "x": 590,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "func_process_status",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "Xử lý Cửa",
+        "func": "var cOpen = flow.get('cOpen') || 0;\nvar cClose = flow.get('cClose') || 0;\n\nvar msgText = null;\nvar msgChart = null;\n\nif (msg.payload == \"OPEN\") {\n    cOpen++;\n    msgText = {payload: \"MỞ (OPEN)\"};\n    msgChart = {payload: 1};\n} \nelse if (msg.payload == \"CLOSED\") {\n    cClose++;\n    msgText = {payload: \"ĐÓNG (CLOSED)\"};\n    msgChart = {payload: 0};\n}\n\nflow.set('cOpen', cOpen);\nflow.set('cClose', cClose);\n\n// --- ĐOẠN CODE THÊM CHO CHATBOT ---\n// Lưu trạng thái vào biến 'doorCurrentState' để Chatbot đọc\nif (msg.payload == \"OPEN\") {\n    flow.set('doorCurrentState', \"Cửa đang MỞ\");\n} else {\n    // Vì logic của bạn là đóng cửa mới khóa được, nên Closed coi như an toàn\n    flow.set('doorCurrentState', \"Cửa đang ĐÓNG (AN TOÀN)\");\n}\n\n// Output 1: Text\n// Output 2: Chart\n// Output 3: Gauge Open\n// Output 4: Gauge Close\nreturn [\n    msgText, \n    msgChart, \n    {payload: cOpen}, \n    {payload: cClose}\n];",
+        "outputs": 4,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 80,
+        "wires": [
+            [
+                "ui_text_status"
+            ],
+            [
+                "ui_chart_door"
+            ],
+            [
+                "g_open"
+            ],
+            [
+                "g_close"
+            ]
+        ]
+    },
+    {
+        "id": "func_process_bell",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "Xử lý Chuông",
+        "func": "var cBell = flow.get('cBell') || 0;\n\nif (msg.payload == \"RING\") {\n    cBell++;\n}\n\nflow.set('cBell', cBell);\n\n// Output 1: Chart Trigger\n// Output 2: Gauge Bell\nreturn [\n    {payload: 1},\n    {payload: cBell}\n];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 300,
+        "wires": [
+            [
+                "trig_bell_pulse"
+            ],
+            [
+                "g_bell"
+            ]
+        ]
+    },
+    {
+        "id": "ui_chart_door",
+        "type": "ui_chart",
+        "z": "flow_v23_final",
+        "name": "",
+        "group": "grp_chart_door",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "label": "Trạng thái Cửa (1=Mở, 0=Đóng)",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "step",
+        "nodata": "",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "1.2",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "60",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 650,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "trig_bell_pulse",
+        "type": "trigger",
+        "z": "flow_v23_final",
+        "name": "",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "num",
+        "op2type": "num",
+        "duration": "1000",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "ms",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 610,
+        "y": 300,
+        "wires": [
+            [
+                "ui_chart_bell"
+            ]
+        ]
+    },
+    {
+        "id": "ui_chart_bell",
+        "type": "ui_chart",
+        "z": "flow_v23_final",
+        "name": "",
+        "group": "grp_chart_bell",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "label": "Tín hiệu Chuông",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "1.2",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "60",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#e6e600",
+            "#AEC7E8",
+            "#FF7F0E",
+            "#2CA02C",
+            "#98DF8A",
+            "#D62728",
+            "#FF9896",
+            "#9467BD",
+            "#C5B0D5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 800,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "g_open",
+        "type": "ui_gauge",
+        "z": "flow_v23_final",
+        "name": "",
+        "group": "grp_gauges",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "donut",
+        "title": "SỐ LẦN MỞ",
+        "label": "lần",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#00B500",
+            "#E6E600",
+            "#CA3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 590,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "g_close",
+        "type": "ui_gauge",
+        "z": "flow_v23_final",
+        "name": "",
+        "group": "grp_gauges",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "donut",
+        "title": "SỐ LẦN ĐÓNG",
+        "label": "lần",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 600,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "g_bell",
+        "type": "ui_gauge",
+        "z": "flow_v23_final",
+        "name": "",
+        "group": "grp_gauges",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "donut",
+        "title": "SỐ LẦN CHUÔNG",
+        "label": "lần",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#00B500",
+            "#E6E600",
+            "#CA3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 610,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "inject_reset",
+        "type": "inject",
+        "z": "flow_v23_final",
+        "name": "RESET 1 PHÚT",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "RESET",
+        "payloadType": "str",
+        "x": 130,
+        "y": 420,
+        "wires": [
+            [
+                "func_reset_logic"
+            ]
+        ]
+    },
+    {
+        "id": "func_reset_logic",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "Reset",
+        "func": "flow.set('cOpen', 0);\nflow.set('cClose', 0);\nflow.set('cBell', 0);\nreturn [null, null, {payload:0}, {payload:0}, {payload:0}];",
+        "outputs": 5,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 420,
+        "wires": [
+            [],
+            [],
+            [
+                "g_open"
+            ],
+            [
+                "g_close"
+            ],
+            [
+                "g_bell"
+            ]
+        ]
+    },
+    {
+        "id": "f_prep_cloud_door",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "Prep Cloud",
+        "func": "var val = (msg.payload==\"OPEN\") ? 1 : 0;\nmsg.payload = { field1: val };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 500,
+        "wires": [
+            [
+                "req_write"
+            ]
+        ]
+    },
+    {
+        "id": "f_prep_cloud_bell",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "Prep Cloud",
+        "func": "msg.payload = { field2: 1 };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 560,
+        "wires": [
+            [
+                "req_write"
+            ]
+        ]
+    },
+    {
+        "id": "req_write",
+        "type": "http request",
+        "z": "flow_v23_final",
+        "name": "WRITE API",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "query",
+        "url": "https://api.thingspeak.com/update?api_key=WHC50FUWWXY73TP6",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 560,
+        "y": 520,
+        "wires": [
+            [
+                "debug_write"
+            ]
+        ]
+    },
+    {
+        "id": "debug_write",
+        "type": "debug",
+        "z": "flow_v23_final",
+        "name": "Log Gửi",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 800,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "inject_read",
+        "type": "inject",
+        "z": "flow_v23_final",
+        "name": "AUTO READ",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 640,
+        "wires": [
+            [
+                "req_read"
+            ]
+        ]
+    },
+    {
+        "id": "req_read",
+        "type": "http request",
+        "z": "flow_v23_final",
+        "name": "READ API",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://api.thingspeak.com/channels/3205543/feeds.json?api_key=MXNXTF6C30C2B0JI&results=150",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 310,
+        "y": 640,
+        "wires": [
+            [
+                "f_parse_log"
+            ]
+        ]
+    },
+    {
+        "id": "f_parse_log",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "Parse Log",
+        "func": "var feeds = msg.payload.feeds;\nvar logs = [];\nif (feeds && feeds.length > 0) {\n    for (var i = feeds.length - 1; i >= 0; i--) {\n        var f = feeds[i];\n        var t = f.created_at.replace(\"T\", \" \").replace(\"Z\", \"\");\n        var status = \"Unknown\";\n        \n        if (f.field2 == \"1\") status = \"BẤM CHUÔNG\";\n        else if (f.field1 == \"1\") status = \"MỞ CỬA (OPEN)\";\n        else if (f.field1 == \"0\") status = \"ĐÓNG CỬA (CLOSED)\";\n        \n        logs.push({time: t, event: status});\n    }\n}\nmsg.payload = logs;\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 640,
+        "wires": [
+            [
+                "tbl_cloud"
+            ]
+        ]
+    },
+    {
+        "id": "tbl_cloud",
+        "type": "ui_template",
+        "z": "flow_v23_final",
+        "group": "grp_log",
+        "name": "Cloud Table",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "<style>\n    table { width: 100%; border-collapse: collapse; }\n    th { background: #333; color: white; padding: 5px; text-align: left; }\n    td { border-bottom: 1px solid #555; padding: 5px; }\n</style>\n<table>\n    <thead>\n        <tr><th>Thời gian</th><th>Sự kiện</th></tr>\n    </thead>\n    <tbody>\n        <tr ng-repeat=\"row in msg.payload\">\n            <td>{{row.time}}</td>\n            <td style=\"color: cyan\">{{row.event}}</td>\n        </tr>\n    </tbody>\n</table>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 750,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ab390056fede31d3",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "TẠO PROMPT",
+        "func": "// 1. Lấy dữ liệu thực tế từ biến toàn cục (được cập nhật ở node \"Xử lý Cửa\")\nvar status = flow.get('doorCurrentState') || \"Chưa rõ (Chưa có dữ liệu từ cảm biến)\";\nvar countOpen = flow.get('cOpen') || 0;\nvar countBell = flow.get('cBell') || 0;\n\n// 2. Câu hỏi của người dùng\nvar userQuestion = msg.payload;\n\n// 3. Tạo ngữ cảnh cho AI\nvar contest = `Bạn là trợ lý quản lý nhà thông minh (Smart Home).\nDữ liệu hiện tại của ngôi nhà theo thời gian thực:\n- Trạng thái cửa: ${status}\n- Số lần mở cửa hôm nay: ${countOpen} lần\n- Số lần bấm chuông: ${countBell} lần.\n\nHãy trả lời câu hỏi của người dùng dựa trên dữ liệu trên.\nPhong cách trả lời: Ngắn gọn, thân thiện, dùng tiếng Việt, có thể dùng icon vui nhộn.`;\n\n// 4. Đóng gói JSON gửi Google\nmsg.payload = {\n    \"contents\": [{\n        \"parts\": [{\n            \"text\": contest + \"\\n\\nNgười dùng hỏi: \" + userQuestion\n        }]\n    }]\n};\n\n// 5. Header\nmsg.headers = {\n    \"Content-Type\": \"application/json\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 780,
+        "wires": [
+            [
+                "dea597cd02e241d3"
+            ]
+        ]
+    },
+    {
+        "id": "dea597cd02e241d3",
+        "type": "http request",
+        "z": "flow_v23_final",
+        "name": "",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyD_UM8c_gi1ojuGSTcWw1S76Olp6W582lg",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 730,
+        "y": 780,
+        "wires": [
+            [
+                "389ae992aa8077c0"
+            ]
+        ]
+    },
+    {
+        "id": "389ae992aa8077c0",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "LỌC KẾT QUẢ",
+        "func": "// Kiểm tra xem có câu trả lời hợp lệ không\nif (msg.payload && msg.payload.candidates && msg.payload.candidates.length > 0) {\n    // Thành công -> Lấy nội dung\n    var aiResponse = msg.payload.candidates[0].content.parts[0].text;\n    msg.payload = aiResponse;\n}\nelse if (msg.payload && msg.payload.error) {\n    // Trường hợp Google báo lỗi cụ thể (Sai Key, Hết hạn mức...)\n    var errCode = msg.payload.error.code;\n    var errMsg = msg.payload.error.message;\n    msg.payload = \"🔴 Lỗi Google (\" + errCode + \"): \" + errMsg;\n}\nelse {\n    // Trường hợp lỗi lạ khác\n    msg.payload = \"🔴 Lỗi lạ: \" + JSON.stringify(msg.payload);\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 780,
+        "wires": [
+            [
+                "d5ec91425f873606"
+            ]
+        ]
+    },
+    {
+        "id": "d5ec91425f873606",
+        "type": "ui_text",
+        "z": "flow_v23_final",
+        "group": "grp_lock_ctrl",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1170,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "ui_input_chat_manual",
+        "type": "ui_text_input",
+        "z": "flow_v23_final",
+        "name": "",
+        "label": "Nhập câu hỏi:",
+        "tooltip": "",
+        "group": "grp_lock_ctrl",
+        "order": 4,
+        "width": "6",
+        "height": "1",
+        "passthru": true,
+        "mode": "text",
+        "delay": "0",
+        "topic": "",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "str",
+        "x": 100,
+        "y": 720,
+        "wires": [
+            [
+                "func_save_temp"
+            ]
+        ]
+    },
+    {
+        "id": "ui_btn_send",
+        "type": "ui_button",
+        "z": "flow_v23_final",
+        "name": "",
+        "group": "grp_lock_ctrl",
+        "order": 5,
+        "width": "2",
+        "height": "1",
+        "passthru": false,
+        "label": "GỬI",
+        "tooltip": "",
+        "color": "white",
+        "bgcolor": "#2196F3",
+        "className": "",
+        "icon": "fa-paper-plane",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 90,
+        "y": 780,
+        "wires": [
+            [
+                "func_trigger_send"
+            ]
+        ]
+    },
+    {
+        "id": "func_save_temp",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "Lưu tạm",
+        "func": "// Chỉ lưu vào biến tạm, không gửi đi\nflow.set('temp_question', msg.payload);\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 720,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "func_trigger_send",
+        "type": "function",
+        "z": "flow_v23_final",
+        "name": "Kiểm tra & Gửi",
+        "func": "// 1. Lấy câu hỏi từ bộ nhớ tạm\nvar q = flow.get('temp_question');\n\n// 2. Kiểm tra nếu rỗng thì không gửi\nif (!q || q.trim() === \"\") {\n    return null;\n}\n\n// 3. Đóng gói để gửi sang node TẠO PROMPT\nmsg.payload = q;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 780,
+        "wires": [
+            [
+                "ab390056fede31d3"
+            ]
+        ]
+    },
+    {
+        "id": "grp_lock_ctrl",
+        "type": "ui_group",
+        "name": "ĐIỀU KHIỂN KHÓA",
+        "tab": "ui_tab_ctrl",
+        "order": 1,
+        "disp": true,
+        "width": "8",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "mqtt_hive_v23",
+        "type": "mqtt-broker",
+        "name": "HiveMQ Public",
+        "broker": "broker.hivemq.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    },
+    {
+        "id": "grp_chart_door",
+        "type": "ui_group",
+        "name": "ĐÓNG / MỞ",
+        "tab": "ui_tab_chart",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "grp_chart_bell",
+        "type": "ui_group",
+        "name": "CHUÔNG CỬA",
+        "tab": "ui_tab_chart",
+        "order": 2,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "grp_gauges",
+        "type": "ui_group",
+        "name": "THỐNG KÊ 1 PHÚT",
+        "tab": "ui_tab_ctrl",
+        "order": 3,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "grp_log",
+        "type": "ui_group",
+        "name": "DỮ LIỆU",
+        "tab": "ui_tab_log",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "ui_tab_ctrl",
+        "type": "ui_tab",
+        "name": "ĐIỀU KHIỂN & TRẠNG THÁI",
+        "icon": "fa-home",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "ui_tab_chart",
+        "type": "ui_tab",
+        "name": "BIỂU ĐỒ",
+        "icon": "fa-line-chart",
+        "order": 2
+    },
+    {
+        "id": "ui_tab_log",
+        "type": "ui_tab",
+        "name": "LOG CLOUD",
+        "icon": "fa-database",
+        "order": 3,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "d63ba7bba92034bb",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.6"
+        }
+    }
+]
