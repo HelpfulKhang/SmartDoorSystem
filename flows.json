@@ -499,7 +499,7 @@
         "type": "function",
         "z": "flow_v23_final",
         "name": "Parse Log",
-        "func": "var feeds = msg.payload.feeds;\nvar logs = [];\nif (feeds && feeds.length > 0) {\n    for (var i = feeds.length - 1; i >= 0; i--) {\n        var f = feeds[i];\n        var t = f.created_at.replace(\"T\", \" \").replace(\"Z\", \"\");\n        var status = \"Unknown\";\n        \n        if (f.field2 == \"1\") status = \"BẤM CHUÔNG\";\n        else if (f.field1 == \"1\") status = \"MỞ CỬA (OPEN)\";\n        else if (f.field1 == \"0\") status = \"ĐÓNG CỬA (CLOSED)\";\n        \n        logs.push({time: t, event: status});\n    }\n}\nmsg.payload = logs;\nreturn msg;",
+        "func": "var feeds = msg.payload.feeds;\nvar logs = [];\n\nif (feeds && feeds.length > 0) {\n    for (var i = feeds.length - 1; i >= 0; i--) {\n        var f = feeds[i];\n\n        // --- XỬ LÝ MÚI GIỜ GMT+7 ---\n        // 1. Tạo đối tượng Date từ chuỗi thời gian của Cloud (đang là UTC)\n        var date = new Date(f.created_at);\n\n        // 2. Cộng thêm 7 giờ\n        date.setHours(date.getHours() + 7);\n\n        // 3. Định dạng lại thành chuỗi đẹp (YYYY-MM-DD HH:mm:ss)\n        var t = date.toISOString().replace(\"T\", \" \").replace(\"Z\", \"\").substring(0, 19);\n        // -----------------------------\n\n        var status = \"Unknown\";\n\n        if (f.field2 == \"1\") status = \"BẤM CHUÔNG\";\n        else if (f.field1 == \"1\") status = \"MỞ CỬA (OPEN)\";\n        else if (f.field1 == \"0\") status = \"ĐÓNG CỬA (CLOSED)\";\n\n        logs.push({ time: t, event: status });\n    }\n}\nmsg.payload = logs;\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -540,7 +540,7 @@
         "type": "function",
         "z": "flow_v23_final",
         "name": "TẠO PROMPT",
-        "func": "// --- 1. CẤU HÌNH BẢO MẬT ---\n// Dán API Key của bạn vào đây (Chỉ mình bạn thấy khi mở code này)\nvar API_KEY = \"AIzaSyD_UM8c_gi1ojuGSTcWw1S76Olp6W582lg\"; // <--- THAY KEY CỦA BẠN VÀO ĐÂY\n\n// Chọn Model (2.0 Flash hoặc 1.5 Pro)\nvar MODEL = \"gemini-2.5-flash\";\n\n// --- 2. LẤY DỮ LIỆU ---\nvar status = flow.get('doorCurrentState') || \"Chưa rõ\";\nvar countOpen = flow.get('cOpen') || 0;\nvar countClose = flow.get('cClose') || 0;\nvar countBell = flow.get('cBell') || 0;\nvar userQuestion = msg.payload; // Lấy câu hỏi từ nút Gửi\n\n// --- 3. TẠO NGỮ CẢNH (Context) ---\nvar contest = `Bạn là trợ lý ảo Smart Door.\nDữ liệu nhà hiện tại:\n- Cửa: ${status}\n- Số lần mở: ${countOpen}\n- Số lần đóng: ${countClose}\n- Số lần bấm chuông: ${countBell}\nHãy trả lời ngắn gọn, thân thiện bằng tiếng Việt.`;\n\n// --- 4. ĐÓNG GÓI JSON ---\nmsg.payload = {\n    \"contents\": [{\n        \"parts\": [{\n            \"text\": contest + \"\\n\\nNgười dùng hỏi: \" + userQuestion\n        }]\n    }]\n};\n\n// --- 5. TẠO ĐƯỜNG LINK ĐỘNG (QUAN TRỌNG) ---\n// Node-RED sẽ dùng msg.url này để gửi đi thay vì dùng cấu hình tĩnh\nmsg.url = \"https://generativelanguage.googleapis.com/v1beta/models/\" + MODEL + \":generateContent?key=\" + API_KEY;\n\n// Header chuẩn\nmsg.headers = {\n    \"Content-Type\": \"application/json\"\n};\n\nreturn msg;",
+        "func": "// --- 1. CẤU HÌNH BẢO MẬT ---\n// Dán API Key của bạn vào đây (Chỉ mình bạn thấy khi mở code này)\nvar API_KEY = \"AIzaSyCBK10ymeYUzB717UkL2zmA8tYD3m4g2rk\"; // <--- THAY KEY CỦA BẠN VÀO ĐÂY\n\n// Chọn Model (2.0 Flash hoặc 1.5 Pro)\nvar MODEL = \"gemini-2.5-flash\";\n\n// --- 2. LẤY DỮ LIỆU ---\nvar status = flow.get('doorCurrentState') || \"Chưa rõ\";\nvar countOpen = flow.get('cOpen') || 0;\nvar countClose = flow.get('cClose') || 0;\nvar countBell = flow.get('cBell') || 0;\nvar userQuestion = msg.payload; // Lấy câu hỏi từ nút Gửi\n\n// --- 3. TẠO NGỮ CẢNH (Context) ---\nvar contest = `Bạn là trợ lý ảo Smart Door.\nDữ liệu nhà hiện tại:\n- Cửa: ${status}\n- Số lần mở: ${countOpen}\n- Số lần đóng: ${countClose}\n- Số lần bấm chuông: ${countBell}\nHãy trả lời ngắn gọn, thân thiện bằng tiếng Việt.`;\n\n// --- 4. ĐÓNG GÓI JSON ---\nmsg.payload = {\n    \"contents\": [{\n        \"parts\": [{\n            \"text\": contest + \"\\n\\nNgười dùng hỏi: \" + userQuestion\n        }]\n    }]\n};\n\n// --- 5. TẠO ĐƯỜNG LINK ĐỘNG (QUAN TRỌNG) ---\n// Node-RED sẽ dùng msg.url này để gửi đi thay vì dùng cấu hình tĩnh\nmsg.url = \"https://generativelanguage.googleapis.com/v1beta/models/\" + MODEL + \":generateContent?key=\" + API_KEY;\n\n// Header chuẩn\nmsg.headers = {\n    \"Content-Type\": \"application/json\"\n};\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -921,7 +921,7 @@
         "hidden": false
     },
     {
-        "id": "812e26b40c06e27e",
+        "id": "c36826e1470c20f8",
         "type": "global-config",
         "env": [],
         "modules": {
