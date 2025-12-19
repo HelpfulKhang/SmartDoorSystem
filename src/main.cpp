@@ -37,6 +37,7 @@ unsigned long lastBellTime = 0;
 void wifiConnect() {
   Serial.print("Connecting to WiFi");
   WiFi.begin(ssid, password);
+  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, IPAddress(8,8,8,8));
   while (WiFi.status() != WL_CONNECTED) {
     delay(500); Serial.print(".");
   }
